@@ -4,6 +4,7 @@
 #include <GLL/Shader.hpp>
 #include <GLL/Mesh.hpp>
 #include <GLL/Camera.hpp>
+#include <GLL/Text.hpp>
 
 #include <iostream>
 
@@ -21,6 +22,7 @@ Viewer* viewer;
 ShaderProgram* unfScaleProg;
 ShaderProgram* normScaleProg;
 ShaderProgram* biasProg;
+ShaderProgram* cellProg;
 Mesh* mesh;
 
 glm::vec4 modelColor(0.6f, 0.6f, 1.0f, 1.0f);
@@ -63,6 +65,7 @@ int main(int argc, char** argv)
 	delete unfScaleProg;
 	delete normScaleProg;
 	delete biasProg;
+	delete cellProg;
 	delete mesh;
 
 	return 0;
@@ -73,6 +76,7 @@ int init()
 	float clearColor[] = { .8f, 1.f, .8f, 1.f }; //Pastel Green
 	glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 
 	viewer = new Viewer();
 
@@ -92,6 +96,11 @@ int init()
 		bias.push_back(Shader::load(GL_VERTEX_SHADER, "Shell.Bias.Vertex"));
 		bias.push_back(Shader::load(GL_FRAGMENT_SHADER, "Shell.Fragment"));
 		biasProg = new ShaderProgram(bias);
+
+		std::vector<GLuint> cell;
+		cell.push_back(Shader::load(GL_VERTEX_SHADER, "Cell.Vertex"));
+		cell.push_back(Shader::load(GL_FRAGMENT_SHADER, "Cell.Fragment"));
+		cellProg = new ShaderProgram(cell);
 	}
 	catch(ShaderException e)
 	{
@@ -116,7 +125,7 @@ int init()
 
 void display()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if(renderMode == unfScale)
 	{
@@ -126,11 +135,7 @@ void display()
 		unfScaleProg->setUniform("uColor", outlineColor);
 		mesh->render(*unfScaleProg);
 
-		//Render frontfaces as usual over the top.
-		glCullFace(GL_BACK);
-		unfScaleProg->setUniform("scale", 1.f);
-		unfScaleProg->setUniform("uColor", modelColor);
-		mesh->render(*unfScaleProg);
+		Text::render("Backface Rendering: Uniform Scale");
 	}
 
 	else if(renderMode == normScale)
@@ -140,12 +145,8 @@ void display()
 		normScaleProg->setUniform("scale", normScaleAmt);
 		normScaleProg->setUniform("uColor", outlineColor);
 		mesh->render(*normScaleProg);
-
-		//Render frontfaces as usual over the top.
-		glCullFace(GL_BACK);
-		normScaleProg->setUniform("scale", 0.f);
-		normScaleProg->setUniform("uColor", modelColor);
-		mesh->render(*normScaleProg);
+	
+		Text::render("Backface Rendering: Scale Along Normals");
 	}
 
 	else if(renderMode == bias)
@@ -156,12 +157,14 @@ void display()
 		biasProg->setUniform("uColor", outlineColor);
 		mesh->render(*biasProg);
 
-		//Render frontfaces as usual over the top.
-		glCullFace(GL_BACK);
-		biasProg->setUniform("bias", 0.f);
-		biasProg->setUniform("uColor", modelColor);
-		mesh->render(*biasProg);
+		Text::render("Backface Rendering: Z-Bias");
 	}
+
+	//Render frontfaces as usual over the top.
+	glCullFace(GL_BACK);
+	cellProg->setUniform("levels", 4);
+	//TODO cellProg->setUniform("surfaceTex", ?);
+	mesh->render(*cellProg);
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -180,10 +183,10 @@ void keyboard(unsigned char key, int x, int y)
 	{
 	case '=':
 	case '+':
-		addAmt(0.1f);
+		addAmt(0.01f);
 		break;
 	case '-':
-		addAmt(-0.1f);
+		addAmt(-0.01f);
 		break;
 
 	case 27: //ESC
