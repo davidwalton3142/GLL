@@ -7,7 +7,7 @@
 
 using namespace GLL;
 
-std::string Shader::path = "../../shaders/";
+std::string Shader::path = "../shaders/";
 std::string Shader::extension = ".glsl";
 
 GLuint Shader::load(GLenum type, std::string key,

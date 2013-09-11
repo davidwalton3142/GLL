@@ -24,7 +24,7 @@ namespace GLL
 	/** Shader
 	 *  Static class for loading and compiling shaders from files.
 	 *  Usage: Load and compile a shader by providing a glsw key.
-	 *         By default, will look for files in "../../shaders" 
+	 *         By default, will look for files in "../shaders" 
 	 *         with extension ".glsl". This behaviour can be changed
 	 *         by modifying Shader::path or Shader::extension before 
 	 *         calling Shader::load.
