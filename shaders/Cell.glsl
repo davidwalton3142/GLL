@@ -1,4 +1,4 @@
---Cell.Vertex
+--Vertex
 
 #version 430
 
@@ -24,12 +24,14 @@ void main()
 	gl_Position = worldToClip * modelToWorld * vec4(vPos, 1.0);
 }
 
---Cell.Fragment
+--Fragment
 
 #version 430
 
 in vec3 norm;
 in vec2 tex;
+
+out vec4 color;
 
 layout(std140) uniform cameraBlock
 {
@@ -46,5 +48,5 @@ void main()
 	float camDotN = clamp(dot(-vec3(cameraDir), norm), 0, 1);
 	int level = int(camDotN * levels);
 	float brightness = float(level) / levels;
-	color = brightness * texure(surfaceTex, tex); 
+	color = brightness * texture(surfaceTex, tex); 
 }
