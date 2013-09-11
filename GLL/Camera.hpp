@@ -6,6 +6,9 @@
 
 namespace GLL
 {
+	/** CameraBlock:
+	 *  Camera uniform block structure. 
+	 */
 	struct CameraBlock
 	{
 		glm::mat4 worldToClip;
@@ -13,6 +16,11 @@ namespace GLL
 		glm::vec4 cameraDir;
 	};
 
+	/** Viewer
+	 *  Camera which rotates around (0,0,0) in world space.
+	 *  Mouse controlled - click and drag to rotate, scroll to zoom.
+	 *  Please call mouse() in glutMouseFunc, and motion() in glutMotionFunc.
+	 */
 	class Viewer
 	{
 	public:

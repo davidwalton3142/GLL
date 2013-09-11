@@ -11,6 +11,9 @@
 
 namespace GLL
 {
+	/** ShaderException
+	 *  Thrown to indicate errors during shader loading, compilation or linking.
+	 */
 	class ShaderException 
 	{ 
 	public: 
@@ -18,6 +21,16 @@ namespace GLL
 		std::string msg;
 	};
 
+	/** Shader
+	 *  Static class for loading and compiling shaders from files.
+	 *  Usage: Load and compile a shader by providing a glsw key.
+	 *         By default, will look for files in "../../shaders" 
+	 *         with extension ".glsl". This behaviour can be changed
+	 *         by modifying Shader::path or Shader::extension before 
+	 *         calling Shader::load.
+	 *  Shader::load returns a GLuint shader handle. Use a vector of these
+	 *  to construct a ShaderProgram object.
+	 */
 	class Shader
 	{
 	public:
@@ -27,7 +40,7 @@ namespace GLL
 		static std::string path;
 		static std::string extension;
 	private:
-		Shader();
+		Shader() {};
 		static std::string getSource(const std::string& key);
 		static bool isValidShaderType(GLenum type);
 		static void substitute(std::string& input, const std::vector<std::string>& subs);
@@ -35,6 +48,16 @@ namespace GLL
 			const std::string& pattern, const std::string& replacement);
 	};
 
+	/** ShaderProgram
+	 *  Object wrapping a full, linked OpenGL shader program.
+	 *  Usage: Construct with a vector of GLuints from Shader::load.
+	 *         Before rendering, setup uniform blocks via setupUBlock(),
+	 *         set uniforms via setUniform(), and use() the program.
+	 *         It is recommended to unuse() after rendering completes.
+	 *  Transparently tracks uniforms and uniform blocks to avoid repeated
+	 *  calls to glGet*() functions. If a uniform name cannot be found, prints
+	 *  an error to std::cerr once only. Subsequently fails silently.
+	 */
 	class ShaderProgram
 	{
 	public:

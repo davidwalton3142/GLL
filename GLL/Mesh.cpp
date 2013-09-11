@@ -1,4 +1,5 @@
 #include "Mesh.hpp"
+
 #include "Shader.hpp"
 
 #include <openctm.h>
@@ -80,7 +81,7 @@ Mesh::~Mesh()
 
 void Mesh::render(ShaderProgram& shader)
 {
-	shader.setupUBlock(uBlock::Viewer);
+	shader.setupUBlock(uBlock::camera);
 	shader.setUniform("modelToWorld", modelToWorld);
 
 	shader.use();

@@ -161,7 +161,7 @@ void ShaderProgram::setupUBlock(uBlock block)
 	std::string name;
 	switch(block)
 	{
-	case uBlock::Viewer:
+	case uBlock::camera:
 		name = "cameraBlock";
 		break;
 	default:

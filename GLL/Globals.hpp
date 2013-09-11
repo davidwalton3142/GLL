@@ -5,7 +5,10 @@
 
 namespace GLL
 {
-	enum class uBlock : GLuint { Viewer = 0 };
+	/** uBlock 
+	 *  Uniform block indices used by GLL.
+	 */
+	enum class uBlock : GLuint { camera = 0 };
 	const size_t nUBlocks = 1;
 }
 

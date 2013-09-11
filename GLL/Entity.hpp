@@ -5,12 +5,14 @@
 
 namespace GLL
 {
+	/** Entity
+	 *  Abstract class for any non-camera object in the world.
+	 */
 	class Entity
 	{
 	public:
-		Entity() {};
-		~Entity() {};
 		glm::mat4 modelToWorld;
+		//TODO: translation, rotation, scaling functions.
 	};
 }
 

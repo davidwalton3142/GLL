@@ -20,7 +20,7 @@ rotSpeed(10.0f), distSpeed(0.1f)
 	perspective = glm::perspective(fov, aspect, zNear, zFar);
 
 	glGenBuffers(1, &ubo);
-	glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(uBlock::Viewer), ubo, 0, sizeof(block));
+	glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(uBlock::camera), ubo, 0, sizeof(block));
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(block), &block, GL_STREAM_DRAW);
 
 	setDist(dist);
