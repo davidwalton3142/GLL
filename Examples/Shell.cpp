@@ -137,13 +137,13 @@ void display()
 	{
 		//Scale model out along norms and render backfaces in outline color.
 		glCullFace(GL_FRONT);
-		normScaleProg->setUniform("scale", 1.f + normScaleAmt);
+		normScaleProg->setUniform("scale", normScaleAmt);
 		normScaleProg->setUniform("uColor", outlineColor);
 		mesh->render(*normScaleProg);
 
 		//Render frontfaces as usual over the top.
 		glCullFace(GL_BACK);
-		normScaleProg->setUniform("scale", 1.f);
+		normScaleProg->setUniform("scale", 0.f);
 		normScaleProg->setUniform("uColor", modelColor);
 		mesh->render(*normScaleProg);
 	}
