@@ -18,11 +18,26 @@ void motion(int x, int y);
 void passiveMotion(int x, int y);
 
 Viewer* viewer;
-ShaderProgram* prog;
+ShaderProgram* unfScaleProg;
+ShaderProgram* normScaleProg;
+ShaderProgram* biasProg;
 Mesh* mesh;
 
+glm::vec4 modelColor(0.6f, 0.6f, 1.0f, 1.0f);
+glm::vec4 outlineColor(0.0f, 0.0f, 0.5f, 1.0f);
+
+enum RenderMode {unfScale = 0, normScale = 1, bias = 2};
+RenderMode renderMode = unfScale;
+
+float unfScaleAmt = 0.1f;
+float normScaleAmt = 0.1f;
+float biasAmt = 0.3f;
+
+void addAmt(float x);
+
 /** Backface shell silhouette demo
- *  This demo shows a dead simple method for rendering silhouettes.
+ *  This demo shows a number of silhouette rendering approaches
+ *  using backface shells.
  */
 
 int main(int argc, char** argv)
@@ -45,7 +60,9 @@ int main(int argc, char** argv)
 	glutPassiveMotionFunc(passiveMotion);
 	glutMainLoop();
 
-	delete prog;
+	delete unfScaleProg;
+	delete normScaleProg;
+	delete biasProg;
 	delete mesh;
 
 	return 0;
@@ -61,10 +78,20 @@ int init()
 
 	try
 	{
-		std::vector<GLuint> shell;
-		shell.push_back(Shader::load(GL_VERTEX_SHADER, "Shell.Vertex"));
-		shell.push_back(Shader::load(GL_FRAGMENT_SHADER, "Shell.Fragment"));
-		prog = new ShaderProgram(shell);
+		std::vector<GLuint> unfScale;
+		unfScale.push_back(Shader::load(GL_VERTEX_SHADER, "Shell.UnfScale.Vertex"));
+		unfScale.push_back(Shader::load(GL_FRAGMENT_SHADER, "Shell.Fragment"));
+		unfScaleProg = new ShaderProgram(unfScale);
+
+		std::vector<GLuint> normScale;
+		normScale.push_back(Shader::load(GL_VERTEX_SHADER, "Shell.NormScale.Vertex"));
+		normScale.push_back(Shader::load(GL_FRAGMENT_SHADER, "Shell.Fragment"));
+		normScaleProg = new ShaderProgram(normScale);
+
+		std::vector<GLuint> bias;
+		bias.push_back(Shader::load(GL_VERTEX_SHADER, "Shell.Bias.Vertex"));
+		bias.push_back(Shader::load(GL_FRAGMENT_SHADER, "Shell.Fragment"));
+		biasProg = new ShaderProgram(bias);
 	}
 	catch(ShaderException e)
 	{
@@ -91,17 +118,50 @@ void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//Enlarge model and render backfaces in outline color.
-	glCullFace(GL_FRONT);
-	prog->setUniform("scale", 1.1f);
-	prog->setUniform("uColor", glm::vec4(0.0f, 0.0f, 0.5f, 1.0f));
-	mesh->render(*prog);
+	if(renderMode == unfScale)
+	{
+		//Enlarge model and render backfaces in outline color.
+		glCullFace(GL_FRONT);
+		unfScaleProg->setUniform("scale", 1.f + unfScaleAmt);
+		unfScaleProg->setUniform("uColor", outlineColor);
+		mesh->render(*unfScaleProg);
 
-	//Render frontfaces as usual over the top.
-	glCullFace(GL_BACK);
-	prog->setUniform("scale", 1.0f);
-	prog->setUniform("uColor", glm::vec4(0.6f, 0.6f, 1.0f, 1.0f));
-	mesh->render(*prog);
+		//Render frontfaces as usual over the top.
+		glCullFace(GL_BACK);
+		unfScaleProg->setUniform("scale", 1.f);
+		unfScaleProg->setUniform("uColor", modelColor);
+		mesh->render(*unfScaleProg);
+	}
+
+	else if(renderMode == normScale)
+	{
+		//Scale model out along norms and render backfaces in outline color.
+		glCullFace(GL_FRONT);
+		normScaleProg->setUniform("scale", 1.f + normScaleAmt);
+		normScaleProg->setUniform("uColor", outlineColor);
+		mesh->render(*normScaleProg);
+
+		//Render frontfaces as usual over the top.
+		glCullFace(GL_BACK);
+		normScaleProg->setUniform("scale", 1.f);
+		normScaleProg->setUniform("uColor", modelColor);
+		mesh->render(*normScaleProg);
+	}
+
+	else if(renderMode == bias)
+	{
+		//Push model forwards and render backfaces in outline color.
+		glCullFace(GL_FRONT);
+		biasProg->setUniform("bias", biasAmt);
+		biasProg->setUniform("uColor", outlineColor);
+		mesh->render(*biasProg);
+
+		//Render frontfaces as usual over the top.
+		glCullFace(GL_BACK);
+		biasProg->setUniform("bias", 0.f);
+		biasProg->setUniform("uColor", modelColor);
+		mesh->render(*biasProg);
+	}
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -118,6 +178,14 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
+	case '=':
+	case '+':
+		addAmt(0.1f);
+		break;
+	case '-':
+		addAmt(-0.1f);
+		break;
+
 	case 27: //ESC
 		exit(0);
 		return;
@@ -129,6 +197,8 @@ void keyboard(unsigned char key, int x, int y)
 void mouse(int button, int state, int x, int y)
 {
 	viewer->mouse(button, state, x, y);
+	if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+		renderMode = (renderMode < 2 ? (RenderMode) (renderMode+1) : (RenderMode) 0);
 }
 
 /* Callback on mouse motion with one or more buttons depressed.
@@ -143,4 +213,17 @@ void motion(int x, int y)
 void passiveMotion(int x, int y)
 {
 
+}
+
+void addAmt(float x)
+{
+	switch(renderMode)
+	{
+	case unfScale:
+		unfScaleAmt += x;
+	case normScale:
+		normScaleAmt += x;
+	case bias:
+		biasAmt -= x;
+	}
 }

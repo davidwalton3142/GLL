@@ -121,7 +121,7 @@ void Viewer::updateBlock()
 {
 	block.worldToClip = perspective * translation * rotation;
 	block.cameraPos = -glm::vec4(translation[3][0], translation[3][1], translation[3][2], 1.0f);
-	block.cameraDir = glm::inverse(rotation) * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+	block.cameraDir = glm::normalize(glm::inverse(rotation) * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
 	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(block), &block);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
